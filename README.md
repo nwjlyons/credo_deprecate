@@ -2,10 +2,10 @@
 
 Checks
 
-- [x] Foo.Bar.foo()
-- [ ] alias Foo.Bar; Bar.foo()
-- [ ] alias Foo.Bar, as: Baz; Baz.foo()
-- [ ] import Foo.Bar; foo()
+- [x] `Foo.Bar.foo()`
+- [ ] `alias Foo.Bar; Bar.foo()`
+- [ ] `alias Foo.Bar, as: Baz; Baz.foo()`
+- [ ] `import Foo.Bar; foo()`
 
 ## Installation
 
