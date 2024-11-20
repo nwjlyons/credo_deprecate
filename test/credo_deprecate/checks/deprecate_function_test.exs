@@ -9,18 +9,34 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
       def answer?(a, b), do: a + b == 42
       def answer?(a), do: a == 42
     end
-    defmodule Allowed do
+    defmodule ModuleOne do
       Foo.answer?(2)
     end
-    defmodule NotAllowedOne do
+    defmodule ModuleTwo do
       Foo.answer?(2)
     end
-    defmodule NotAllowedTwo do
+    """
+    |> to_source_file()
+    |> run_check(DeprecateFunction, mfa: {Foo, :answer?, 1}, allow_list: [ModuleOne])
+    |> assert_issue()
+  end
+
+  test "remote function call with different arity allowed" do
+    """
+    defmodule Foo do
+      def answer?(a, b), do: a + b == 42
+      def answer?(a), do: a == 42
+    end
+    defmodule ModuleOne do
+      Foo.answer?(2)
+    end
+    defmodule ModuleTwo do
+      # uses different arity
       Foo.answer?(2, 2)
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :answer?, 1}, allow_list: [Allowed])
-    |> assert_issue()
+    |> run_check(DeprecateFunction, mfa: {Foo, :answer?, 1}, allow_list: [ModuleOne])
+    |> refute_issues()
   end
 end
