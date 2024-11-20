@@ -1,10 +1,9 @@
 defmodule CredoDeprecate.Checks.DeprecateFunction do
-  use Credo.Check
+  use Credo.Check, param_defaults: [allow_list: []]
 
   def run(%SourceFile{} = source_file, params \\ []) do
-    params = Keyword.validate!(params, [:mfa, allow_list: []])
-    {module, function, arity} = Keyword.fetch!(params, :mfa)
-    allow_list = Keyword.fetch!(params, :allow_list)
+    {module, function, arity} = Params.get(params, :mfa, __MODULE__)
+    allow_list = Params.get(params, :allow_list, __MODULE__)
 
     Credo.Code.prewalk(source_file, &traverse(&1, &2, IssueMeta.for(source_file, params)), %{
       mfa: %{
