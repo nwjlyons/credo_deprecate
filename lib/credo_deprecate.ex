@@ -1,3 +1,2 @@
 defmodule CredoDeprecate do
-
 end

@@ -62,6 +62,6 @@ defmodule CredoDeprecate.Checks.DeprecateFunction do
   end
 
   def module_to_atoms(module) when is_atom(module) do
-      module |> Module.split() |> Enum.map(&String.to_atom/1)
+    module |> Module.split() |> Enum.map(&String.to_atom/1)
   end
 end
