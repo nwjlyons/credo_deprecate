@@ -1,4 +1,0 @@
-defmodule CredoSupersede do
-
-
-end

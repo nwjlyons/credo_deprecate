@@ -1,4 +1,4 @@
-defmodule CredoSupersede.MixProject do
+defmodule CredoDeprecate.MixProject do
   use Mix.Project
 
   def project do
