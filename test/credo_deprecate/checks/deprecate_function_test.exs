@@ -21,6 +21,23 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     |> assert_issue()
   end
 
+  test "remote function call with zero arity not allowed" do
+    """
+    defmodule Foo do
+      def foo(), do: nil
+    end
+    defmodule ModuleOne do
+      Foo.foo()
+    end
+    defmodule ModuleTwo do
+      Foo.foo()
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 0}, allow_list: [ModuleOne])
+    |> assert_issue()
+  end
+
   test "remote function call with different arity allowed" do
     """
     defmodule Foo do
