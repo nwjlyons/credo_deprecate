@@ -2,15 +2,18 @@ defmodule CredoDeprecate.Checks.DeprecateFunction do
   use Credo.Check
 
   def run(%SourceFile{} = source_file, params \\ []) do
-    params = Keyword.validate!(params, [:mfa])
+    params = Keyword.validate!(params, [:mfa, allow_list: []])
     {module, function, arity} = Keyword.fetch!(params, :mfa)
+    allow_list = Keyword.fetch!(params, :allow_list)
 
     Credo.Code.prewalk(source_file, &traverse(&1, &2, IssueMeta.for(source_file, params)), %{
       mfa: %{
-        module: module |> Module.split() |> Enum.map(&String.to_atom/1),
+        module: module_to_atoms(module),
         function: function,
         arity: arity
       },
+      allow_list: allow_list |> Enum.map(&module_to_atoms/1),
+      current_module: nil,
       issues: []
     })
     |> Map.fetch!(:issues)
@@ -18,15 +21,19 @@ defmodule CredoDeprecate.Checks.DeprecateFunction do
 
   defp traverse(ast, acc, issue_meta) do
     case ast do
-      {:import, import_meta, [{:__aliases__, _aliases_meta, module}]} ->
-        if module == acc.mfa.module do
+      {:defmodule, _meta, [{:__aliases__, _, current_module} | _]} ->
+        {ast, %{acc | current_module: current_module}}
+
+      {{:., dot_meta, [{:__aliases__, _aliases_meta, module}, function]}, _args_meta, args} ->
+        if acc.current_module not in acc.allow_list && module == acc.mfa.module &&
+             function == acc.mfa.function && length(args) == acc.mfa.arity do
           {ast,
            %{
              acc
              | issues: [
                  issue_for(
                    issue_meta,
-                   import_meta[:line],
+                   dot_meta[:line],
                    "#{module_to_string(acc.mfa.module)} is deprecated"
                  )
                  | acc.issues
@@ -52,5 +59,9 @@ defmodule CredoDeprecate.Checks.DeprecateFunction do
 
   defp module_to_string(module) when is_list(module) do
     module |> Enum.map(&Atom.to_string/1) |> Enum.join(".")
+  end
+
+  def module_to_atoms(module) when is_atom(module) do
+      module |> Module.split() |> Enum.map(&String.to_atom/1)
   end
 end

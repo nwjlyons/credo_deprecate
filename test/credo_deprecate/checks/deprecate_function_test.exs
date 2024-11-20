@@ -3,17 +3,24 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
 
   alias CredoDeprecate.Checks.DeprecateFunction
 
-  test "import not allowed" do
+  test "remote function call not allowed" do
     """
     defmodule Foo do
-      def foo(), do: nil
+      def answer?(a, b), do: a + b == 42
+      def answer?(a), do: a == 42
     end
-    defmodule CredoSampleModule do
-      import Foo
+    defmodule Allowed do
+      Foo.answer?(2)
+    end
+    defmodule NotAllowedOne do
+      Foo.answer?(2)
+    end
+    defmodule NotAllowedTwo do
+      Foo.answer?(2, 2)
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1})
+    |> run_check(DeprecateFunction, mfa: {Foo, :answer?, 1}, allow_list: [Allowed])
     |> assert_issue()
   end
 end
