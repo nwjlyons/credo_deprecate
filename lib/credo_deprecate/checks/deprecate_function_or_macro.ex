@@ -2,7 +2,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
   use Credo.Check,
     base_priority: :high,
     category: :warning,
-    param_defaults: [mfa: nil, allow_list: []],
+    param_defaults: [mfa: nil, allow_list: [], message: nil],
     explanations: [
       check: """
       Prevents new usage of deprecated functions and macros while allowing existing usage.
@@ -16,7 +16,8 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
       """,
       params: [
         mfa: "A tuple `{Module, :function_or_macro, arity}` specifying the deprecated function or macro.",
-        allow_list: "List of modules that are allowed to continue using the deprecated function or macro."
+        allow_list: "List of modules that are allowed to continue using the deprecated function or macro.",
+        message: "Custom error message to display when the deprecated function or macro is used. If not provided, defaults to '#{Module} is deprecated'."
       ]
     ]
 
@@ -24,6 +25,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
   def run(%SourceFile{} = source_file, params \\ []) do
     {module, function, arity} = Params.get(params, :mfa, __MODULE__)
     allow_list = Params.get(params, :allow_list, __MODULE__)
+    message = Params.get(params, :message, __MODULE__)
 
     Credo.Code.prewalk(source_file, &traverse(&1, &2, IssueMeta.for(source_file, params)), %{
       mfa: %{
@@ -32,6 +34,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
         arity: arity
       },
       allow_list: allow_list |> Enum.map(&module_to_atoms/1),
+      message: message,
       current_module: nil,
       aliases: %{},
       imports: [],
@@ -99,7 +102,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
           issue_for(
             issue_meta,
             line_no,
-            "#{module_to_string(acc.mfa.module)} is deprecated"
+            String.trim_trailing("#{module_to_string(acc.mfa.module)}.#{acc.mfa.function}/#{acc.mfa.arity} is deprecated. #{acc.message}")
           )
           | acc.issues
         ]

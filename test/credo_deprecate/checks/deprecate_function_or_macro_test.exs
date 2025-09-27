@@ -464,4 +464,85 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacroTest do
     |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :deprecated_function, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
+
+  # Custom message tests
+  test "uses default message when no custom message provided" do
+    """
+    defmodule Foo do
+      def foo(a), do: nil
+    end
+    defmodule ModuleOne do
+      Foo.foo(2)
+    end
+    defmodule ModuleTwo do
+      Foo.foo(2)
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> assert_issue(fn issue ->
+      assert issue.message == "Foo is deprecated"
+    end)
+  end
+
+  test "uses custom message when provided" do
+    """
+    defmodule Foo do
+      def foo(a), do: nil
+    end
+    defmodule ModuleOne do
+      Foo.foo(2)
+    end
+    defmodule ModuleTwo do
+      Foo.foo(2)
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne], message: "This function is no longer supported")
+    |> assert_issue(fn issue ->
+      assert issue.message == "This function is no longer supported"
+    end)
+  end
+
+  test "custom message works with alias calls" do
+    """
+    defmodule Foo do
+      def foo(a), do: nil
+    end
+    defmodule ModuleOne do
+      alias Foo
+      Foo.foo(2)
+    end
+    defmodule ModuleTwo do
+      alias Foo
+      Foo.foo(2)
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne], message: "Please use the new API instead")
+    |> assert_issue(fn issue ->
+      assert issue.message == "Please use the new API instead"
+    end)
+  end
+
+  test "custom message works with import calls" do
+    """
+    defmodule Foo do
+      def foo(a), do: nil
+    end
+    defmodule ModuleOne do
+      import Foo
+      foo(2)
+    end
+    defmodule ModuleTwo do
+      import Foo
+      foo(2)
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne], message: "Use Bar.foo/1 instead")
+    |> assert_issue(fn issue ->
+      assert issue.message == "Use Bar.foo/1 instead"
+    end)
+  end
 end
