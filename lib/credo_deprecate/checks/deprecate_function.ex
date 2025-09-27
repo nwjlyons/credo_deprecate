@@ -5,18 +5,18 @@ defmodule CredoDeprecate.Checks.DeprecateFunction do
     param_defaults: [mfa: nil, allow_list: []],
     explanations: [
       check: """
-      Prevents new usage of deprecated functions while allowing existing usage.
+      Prevents new usage of deprecated functions and macros while allowing existing usage.
 
-      Sometimes you have functions in your codebase that you want to deprecate, but you can't
+      Sometimes you have functions or macros in your codebase that you want to deprecate, but you can't
       use Elixir's built-in `@deprecated` attribute because there are existing uses
       scattered throughout the codebase. This check allows you to prevent new usage while
       maintaining an allow list for existing usage.
 
-      The check detects all forms of function calls: direct calls, aliased calls, and imported calls.
+      The check detects all forms of function and macro calls: direct calls, aliased calls, and imported calls.
       """,
       params: [
-        mfa: "A tuple `{Module, :function, arity}` specifying the deprecated function.",
-        allow_list: "List of modules that are allowed to continue using the deprecated function."
+        mfa: "A tuple `{Module, :function_or_macro, arity}` specifying the deprecated function or macro.",
+        allow_list: "List of modules that are allowed to continue using the deprecated function or macro."
       ]
     ]
 
