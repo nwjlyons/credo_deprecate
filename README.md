@@ -30,11 +30,11 @@ end
       name: "default",
       checks: [
         {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
-          mfa: {MyApp.Foo, :dont_use_this_function_anymore, 2},
+          mfa: {MyApp.Foo, :deprecated_function, 2},
           allow_list: [MyApp.Bar, MyApp.Baz]
         ]},
         {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
-          mfa: {MyApp.Foo, :dont_use_this_macro_anymore, 2},
+          mfa: {MyApp.Foo, :deprecated_macro, 2},
           allow_list: [MyApp.Bar]
         ]}
       ]
@@ -51,7 +51,7 @@ The check detects all forms of function and macro calls in the examples below:
 ```elixir
 defmodule MyApp.Qux do
   def quux() do
-    MyApp.Foo.dont_use_this_function_anymore(arg1, arg2)
+    MyApp.Foo.deprecated_function(arg1, arg2)
   end
 end
 ```
@@ -62,8 +62,8 @@ defmodule MyApp.Qux do
   alias MyApp.Foo
 
   def quux() do
-    Foo.dont_use_this_function_anymore(arg1, arg2)
-    Foo.dont_use_this_macro_anymore(arg1, arg2)
+    Foo.deprecated_function(arg1, arg2)
+    Foo.deprecated_macro(arg1, arg2)
   end
 end
 ```
@@ -74,8 +74,8 @@ defmodule MyApp.Qux do
   alias MyApp.Foo, as: MyFoo
 
   def quux() do
-    MyFoo.dont_use_this_function_anymore(arg1, arg2)
-    MyFoo.dont_use_this_macro_anymore(arg1, arg2)
+    MyFoo.deprecated_function(arg1, arg2)
+    MyFoo.deprecated_macro(arg1, arg2)
   end
 end
 ```
@@ -86,8 +86,8 @@ defmodule MyApp.Qux do
   import MyApp.Foo
 
   def quux() do
-    dont_use_this_function_anymore(arg1, arg2)
-    dont_use_this_macro_anymore(arg1, arg2)
+    deprecated_function(arg1, arg2)
+    deprecated_macro(arg1, arg2)
   end
 end
 ```
