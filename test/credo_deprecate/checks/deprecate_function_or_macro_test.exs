@@ -1,7 +1,7 @@
-defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
+defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacroTest do
   use Credo.Test.Case
 
-  alias CredoDeprecate.Checks.DeprecateFunction
+  alias CredoDeprecate.Checks.DeprecateFunctionOrMacro
 
   test "remote function call not allowed" do
     """
@@ -17,7 +17,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -34,7 +34,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 0}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 0}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -53,7 +53,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> refute_issues()
   end
 
@@ -72,7 +72,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -91,7 +91,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -110,7 +110,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -129,7 +129,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -148,7 +148,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -167,7 +167,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -188,7 +188,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> refute_issues()
   end
 
@@ -209,7 +209,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> refute_issues()
   end
 
@@ -228,7 +228,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -245,7 +245,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 0}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 0}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -264,7 +264,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> refute_issues()
   end
 
@@ -283,7 +283,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -302,7 +302,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -321,7 +321,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -340,7 +340,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -359,7 +359,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -378,7 +378,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo.Bar, :baz, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 
@@ -399,7 +399,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> refute_issues()
   end
 
@@ -420,7 +420,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> refute_issues()
   end
 
@@ -440,7 +440,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionTest do
     end
     """
     |> to_source_file()
-    |> run_check(DeprecateFunction, mfa: {Foo, :baz, 1}, allow_list: [ModuleOne])
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :baz, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
 end

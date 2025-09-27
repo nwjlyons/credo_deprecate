@@ -29,11 +29,11 @@ end
     %{
       name: "default",
       checks: [
-        {CredoDeprecate.Checks.DeprecateFunction, [
+        {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
           mfa: {MyApp.Foo, :dont_use_this_function_anymore, 2},
           allow_list: [MyApp.Bar, MyApp.Baz]
         ]},
-        {CredoDeprecate.Checks.DeprecateFunction, [
+        {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
           mfa: {MyApp.Foo, :dont_use_this_macro_anymore, 2},
           allow_list: [MyApp.Bar]
         ]}

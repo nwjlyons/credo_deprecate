@@ -1,4 +1,4 @@
-defmodule CredoDeprecate.Checks.DeprecateFunction do
+defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
   use Credo.Check,
     base_priority: :high,
     category: :warning,
