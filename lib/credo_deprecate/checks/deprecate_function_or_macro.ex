@@ -60,16 +60,6 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
       {:import, _meta, [{:__aliases__, _, module}]} ->
         {ast, %{acc | imports: [module | acc.imports]}}
 
-      # Handle other sigils that might contain Elixir code
-      {sigil_name, _meta, [_content, _options]} when is_atom(sigil_name) ->
-        sigil_str = Atom.to_string(sigil_name)
-        if String.starts_with?(sigil_str, "sigil_") do
-          # Let prewalk continue traversing into the sigil content for regular sigils
-          {ast, acc}
-        else
-          {ast, acc}
-        end
-
       # Handle direct module calls (existing functionality)
       {{:., dot_meta, [{:__aliases__, _aliases_meta, module}, function]}, _args_meta, args} ->
         cond do
