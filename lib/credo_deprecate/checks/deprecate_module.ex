@@ -1,37 +1,32 @@
-defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
+defmodule CredoDeprecate.Checks.DeprecateModule do
   use Credo.Check,
     base_priority: :high,
     category: :warning,
-    param_defaults: [mfa: nil, allow_list: [], message: nil],
+    param_defaults: [module: nil, allow_list: [], message: nil],
     explanations: [
       check: """
-      Prevents new usage of deprecated functions and macros while allowing existing usage via an `allow_list`
-      which you can't do with the built in @deprecated attribute.
+      Prevents new usage of deprecated modules while allowing existing usage via an `allow_list`.
 
-      The check detects all forms of function and macro calls: direct calls, aliased calls, imported calls, required calls.
+      The check detects all forms of module usage: direct calls, aliased calls, imported calls, required calls.
       """,
       params: [
-        mfa:
-          "A tuple `{Module, :function_or_macro, arity}` specifying the deprecated function or macro.",
+        module:
+          "The deprecated module to check for usage.",
         allow_list:
-          "List of modules that are allowed to continue using the deprecated function or macro.",
+          "List of modules that are allowed to continue using the deprecated module.",
         message:
-          "Custom error message to display when the deprecated function or macro is used."
+          "Custom error message to display when the deprecated module is used."
       ]
     ]
 
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params \\ []) do
-    {module, function, arity} = Params.get(params, :mfa, __MODULE__)
+    module = Params.get(params, :module, __MODULE__)
     allow_list = Params.get(params, :allow_list, __MODULE__)
     message = Params.get(params, :message, __MODULE__)
 
     Credo.Code.prewalk(source_file, &traverse(&1, &2, IssueMeta.for(source_file, params)), %{
-      mfa: %{
-        module: module_to_atoms(module),
-        function: function,
-        arity: arity
-      },
+      deprecated_module: module_to_atoms(module),
       allow_list: allow_list |> Enum.map(&module_to_atoms/1),
       message: message,
       current_module: nil,
@@ -67,24 +62,16 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
       {:require, _meta, [{:__aliases__, _, module}]} ->
         {ast, %{acc | requires: [module | acc.requires]}}
 
-      # Handle direct module calls (existing functionality)
-      {{:., dot_meta, [{:__aliases__, _aliases_meta, module}, function]}, _args_meta, args} ->
+      # Handle direct module calls
+      {{:., dot_meta, [{:__aliases__, _aliases_meta, module}, _function]}, _args_meta, _args} ->
         cond do
           # Direct call to deprecated module
-          acc.current_module not in acc.allow_list && module == acc.mfa.module &&
-            function == acc.mfa.function && length(args) == acc.mfa.arity ->
+          acc.current_module not in acc.allow_list && module == acc.deprecated_module ->
             {ast, add_issue(acc, issue_meta, dot_meta[:line])}
 
           # Call through alias
           acc.current_module not in acc.allow_list && Map.has_key?(acc.aliases, module) &&
-            Map.get(acc.aliases, module) == acc.mfa.module &&
-            function == acc.mfa.function && length(args) == acc.mfa.arity ->
-            {ast, add_issue(acc, issue_meta, dot_meta[:line])}
-
-          # Call through require (full module name)
-          acc.current_module not in acc.allow_list && acc.mfa.module in acc.requires &&
-            module == acc.mfa.module && function == acc.mfa.function &&
-              length(args) == acc.mfa.arity ->
+            Map.get(acc.aliases, module) == acc.deprecated_module ->
             {ast, add_issue(acc, issue_meta, dot_meta[:line])}
 
           true ->
@@ -93,8 +80,12 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
 
       # Handle imported function calls
       {function, meta, args} when is_atom(function) and is_list(args) ->
-        if acc.current_module not in acc.allow_list && acc.mfa.module in acc.imports &&
-             function == acc.mfa.function && length(args) == acc.mfa.arity do
+        # Exclude common language constructs that aren't function calls
+        excluded_functions = [:defmodule, :def, :defp, :defmacro, :defmacrop, :alias, :import, :require, :use, :__aliases__]
+
+
+        if acc.current_module not in acc.allow_list && acc.deprecated_module in acc.imports &&
+           function not in excluded_functions do
           {ast, add_issue(acc, issue_meta, meta[:line])}
         else
           {ast, acc}
@@ -113,7 +104,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
             issue_meta,
             line_no,
             String.trim_trailing(
-              "#{module_to_string(acc.mfa.module)}.#{acc.mfa.function}/#{acc.mfa.arity} is deprecated. #{acc.message}"
+              "#{module_to_string(acc.deprecated_module)} is deprecated. #{acc.message}"
             )
           )
           | acc.issues
