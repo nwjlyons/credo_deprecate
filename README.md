@@ -1,13 +1,9 @@
 # CredoDeprecate
 
-Prevents new usage of deprecated functions and macros while allowing existing usage.
+Credo check to prevent new usage of deprecated functions and macros while allowing existing usage via an `allow_list` 
+which you can't do with the built in [`@deprecated`](https://hexdocs.pm/elixir/Module.html#module-deprecated-since-v1-6-0) attribute.
 
-Sometimes you have functions or macros in your codebase that you want to deprecate, but you can't
-use Elixir's built-in `@deprecated` attribute because there are existing uses
-scattered throughout the codebase. This check allows you to prevent new usage while
-maintaining an allow list for existing usage.
-
-The check detects all forms of function and macro calls: direct calls, aliased calls, and imported calls.
+The check detects all forms of function and macro calls: direct calls, aliased calls, imported calls, required calls.
 
 ## Usage
 
