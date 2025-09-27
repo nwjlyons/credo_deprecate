@@ -1,80 +1,26 @@
 defmodule CredoDeprecate.Checks.DeprecateFunction do
-  @moduledoc """
-  A Credo check to prevent new usage of deprecated functions while allowing existing usage.
+  use Credo.Check,
+    base_priority: :high,
+    category: :warning,
+    param_defaults: [allow_list: []],
+    explanations: [
+      check: """
+      Prevents new usage of deprecated functions while allowing existing usage.
 
-  ## The Problem: Why This Check Exists
+      Sometimes you have functions in your codebase that you want to deprecate, but you can't
+      use Elixir's built-in `@deprecated` attribute because there are existing uses
+      scattered throughout the codebase. This check allows you to prevent new usage while
+      maintaining an allow list for existing usage.
 
-  Sometimes you have functions in your codebase that you want to deprecate, but you can't
-  use Elixir's built-in `@deprecated` attribute because there are existing legitimate uses
-  scattered throughout the codebase. Using `@deprecated` would immediately flag all existing
-  usage, creating noise and making it harder to prevent *new* usage.
+      The check detects all forms of function calls: direct calls, aliased calls, and imported calls.
+      """,
+      params: [
+        mfa: "A tuple `{Module, :function, arity}` specifying the deprecated function.",
+        allow_list: "List of modules that are allowed to continue using the deprecated function."
+      ]
+    ]
 
-  This check implements the concept of a "shitlist" as described by Simon Eskildsen from
-  Shopify (https://sirupsen.com/shitlists). The idea is to:
-
-  1. Acknowledge that some code is problematic but can't be immediately removed
-  2. Prevent the problem from getting worse by blocking new usage
-  3. Allow existing usage to continue (via an allow list) while you work on migration
-
-  ## Configuration
-
-  The check requires two parameters:
-
-  - `mfa`: A tuple `{Module, :function, arity}` specifying the deprecated function
-  - `allow_list`: A list of modules that are allowed to continue using the deprecated function
-
-  ## Usage
-
-  Add this check to your `.credo.exs` configuration:
-
-  ```elixir
-  {CredoDeprecate.Checks.DeprecateFunction, [
-    mfa: {MyApp.LegacyModule, :problematic_function, 2},
-    allow_list: [MyApp.ExistingUser, MyApp.AnotherExistingUser]
-  ]}
-  ```
-
-  ## Examples
-
-  Given the configuration above, this check will flag new usage:
-
-  ```elixir
-  defmodule MyApp.NewModule do
-    # ❌ This will be flagged
-    MyApp.LegacyModule.problematic_function(arg1, arg2)
-  end
-  ```
-
-  But allow existing usage:
-
-  ```elixir
-  defmodule MyApp.ExistingUser do
-    # ✅ This is allowed (module is in allow_list)
-    MyApp.LegacyModule.problematic_function(arg1, arg2)
-  end
-  ```
-
-  The check detects all forms of function calls:
-
-  - Direct calls: `MyModule.function(args)`
-  - Aliased calls: `alias MyModule; MyModule.function(args)`
-  - Aliased with as: `alias MyModule, as: Alias; Alias.function(args)`
-  - Imported calls: `import MyModule; function(args)`
-
-  ## Workflow
-
-  1. Identify a problematic function you want to deprecate
-  2. Find all current usage with `grep` or similar tools
-  3. Add those modules to the `allow_list`
-  4. Configure this check to prevent new usage
-  5. Gradually migrate existing usage and remove modules from the allow list
-  6. Once the allow list is empty, you can safely remove the deprecated function
-
-  This approach lets you prevent technical debt from growing while giving you time to
-  address existing usage systematically.
-  """
-  use Credo.Check, param_defaults: [allow_list: []]
-
+  @impl Credo.Check
   def run(%SourceFile{} = source_file, params \\ []) do
     {module, function, arity} = Params.get(params, :mfa, __MODULE__)
     allow_list = Params.get(params, :allow_list, __MODULE__)
@@ -173,7 +119,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunction do
     module |> Enum.map(&Atom.to_string/1) |> Enum.join(".")
   end
 
-  def module_to_atoms(module) when is_atom(module) do
+  defp module_to_atoms(module) when is_atom(module) do
     module |> Module.split() |> Enum.map(&String.to_atom/1)
   end
 end
