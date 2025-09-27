@@ -2,7 +2,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunction do
   use Credo.Check,
     base_priority: :high,
     category: :warning,
-    param_defaults: [allow_list: []],
+    param_defaults: [mfa: nil, allow_list: []],
     explanations: [
       check: """
       Prevents new usage of deprecated functions while allowing existing usage.
