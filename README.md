@@ -33,14 +33,15 @@ end
     %{
       name: "default",
       checks: [
-        {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
-          mfa: {MyApp.Foo, :deprecated_function, 2},
+        {CredoDeprecate.Checks.DeprecateModule, [
+          module: MyApp.Foo,
           allow_list: [MyApp.Bar, MyApp.Baz],
           message: "use Abc.bar/2 instead"
         ]},
         {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
-          mfa: {MyApp.Foo, :deprecated_macro, 2},
-          allow_list: [MyApp.Bar]
+          mfa: {MyApp.Foo, :deprecated_function, 2},
+          allow_list: [MyApp.Bar],
+          message: "use Abc.bar/2 instead"
         ]}
       ]
     }

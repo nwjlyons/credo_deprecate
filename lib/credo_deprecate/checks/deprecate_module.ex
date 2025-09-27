@@ -19,6 +19,10 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
       ]
     ]
 
+  alias Credo.Check.Params
+  alias Credo.IssueMeta
+  alias Credo.SourceFile
+
   @impl Credo.Check
   def run(%SourceFile{} = source_file, params \\ []) do
     module = Params.get(params, :module, __MODULE__)
@@ -33,7 +37,8 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
       aliases: %{},
       imports: [],
       requires: [],
-      issues: []
+      issues: [],
+      flagged_modules: MapSet.new()
     })
     |> Map.fetch!(:issues)
   end
@@ -41,7 +46,7 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
   defp traverse(ast, acc, issue_meta) do
     case ast do
       {:defmodule, _meta, [{:__aliases__, _, current_module} | _]} ->
-        # Reset aliases, imports, and requires for new module
+        # Reset aliases, imports, and requires for new module, but keep flagged_modules
         {ast, %{acc | current_module: current_module, aliases: %{}, imports: [], requires: []}}
 
       # Handle alias statements
@@ -67,25 +72,44 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
         cond do
           # Direct call to deprecated module
           acc.current_module not in acc.allow_list && module == acc.deprecated_module ->
-            {ast, add_issue(acc, issue_meta, dot_meta[:line])}
+            if MapSet.member?(acc.flagged_modules, acc.current_module) do
+              {ast, acc}
+            else
+              {ast, add_issue(acc, issue_meta, dot_meta[:line])}
+            end
 
           # Call through alias
           acc.current_module not in acc.allow_list && Map.has_key?(acc.aliases, module) &&
             Map.get(acc.aliases, module) == acc.deprecated_module ->
-            {ast, add_issue(acc, issue_meta, dot_meta[:line])}
+            if MapSet.member?(acc.flagged_modules, acc.current_module) do
+              {ast, acc}
+            else
+              {ast, add_issue(acc, issue_meta, dot_meta[:line])}
+            end
+
+          # Call through require (full module name)
+          acc.current_module not in acc.allow_list && acc.deprecated_module in acc.requires &&
+            module == acc.deprecated_module ->
+            if MapSet.member?(acc.flagged_modules, acc.current_module) do
+              {ast, acc}
+            else
+              {ast, add_issue(acc, issue_meta, dot_meta[:line])}
+            end
 
           true ->
             {ast, acc}
         end
 
-      # Handle imported function calls
-      {function, meta, args} when is_atom(function) and is_list(args) ->
-        # Exclude common language constructs that aren't function calls
-        excluded_functions = [:defmodule, :def, :defp, :defmacro, :defmacrop, :alias, :import, :require, :use, :__aliases__]
-
-
-        if acc.current_module not in acc.allow_list && acc.deprecated_module in acc.imports &&
-           function not in excluded_functions do
+      # Handle imported function calls - conservative approach
+      # Only flag function calls that are very likely to be from the imported deprecated module
+      {function, meta, args} when is_atom(function) and is_list(args) and is_list(meta) ->
+        # Very conservative: only flag if all conditions are met
+        if acc.current_module not in acc.allow_list && 
+           acc.deprecated_module in acc.imports &&
+           not MapSet.member?(acc.flagged_modules, acc.current_module) &&
+           is_integer(meta[:line]) &&
+           # Only flag functions that look like regular user-defined functions
+           is_likely_user_function(function) do
           {ast, add_issue(acc, issue_meta, meta[:line])}
         else
           {ast, acc}
@@ -108,7 +132,8 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
             )
           )
           | acc.issues
-        ]
+        ],
+        flagged_modules: MapSet.put(acc.flagged_modules, acc.current_module)
     }
   end
 
@@ -127,5 +152,31 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
 
   defp module_to_atoms(module) when is_atom(module) do
     module |> Module.split() |> Enum.map(&String.to_atom/1)
+  end
+
+  # Helper function to identify functions that are likely to be user-defined
+  # This is a conservative heuristic to only flag function calls that could reasonably be from imported modules
+  defp is_likely_user_function(function) do
+    function_str = Atom.to_string(function)
+
+    # Exclude obvious built-ins and special forms
+    not (function in [
+      # Operators and built-ins
+      :+, :-, :*, :/, :==, :!=, :<, :>, :<=, :>=, :and, :or, :not,
+      :is_atom, :is_binary, :is_boolean, :is_float, :is_function, :is_integer,
+      :is_list, :is_map, :is_nil, :is_number, :is_pid, :is_port, :is_reference,
+      :is_tuple, :length, :hd, :tl, :elem, :put_elem, :tuple_size,
+      # Special forms and keywords
+      :import, :alias, :require, :defmodule, :def, :defp, :defmacro, :defstruct,
+      :if, :unless, :case, :cond, :with, :for, :try, :receive, :quote, :unquote,
+      # Common Kernel functions
+      :apply, :send, :spawn, :exit, :throw, :raise, :reraise,
+      # Single letter functions (often local variables or very short local functions)
+      :a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k, :l, :m, :n, :o, :p, :q, :r, :s, :t, :u, :v, :w, :x, :y, :z
+    ]) and
+    # Must be a reasonable function name (contains letters, not just symbols)
+    String.match?(function_str, ~r/^[a-zA-Z][a-zA-Z0-9_]*[?!]?$/) and
+    # Not too short (single letter) or too long (likely generated)
+    String.length(function_str) > 1 and String.length(function_str) < 50
   end
 end
