@@ -43,7 +43,53 @@ end
 }
 ```
 
-### 3. Run Credo
+### 3. Examples of detected function calls
+
+The check detects all forms of function calls in the examples below:
+
+#### Direct calls
+```elixir
+defmodule MyApp.Qux do
+  def quux() do
+    MyApp.Foo.dont_use_this_function_anymore(arg1, arg2)
+  end
+end
+```
+
+#### Aliased calls
+```elixir
+defmodule MyApp.Qux do
+  alias MyApp.Foo
+
+  def quux() do
+    Foo.dont_use_this_function_anymore(arg1, arg2)
+  end
+end
+```
+
+#### Aliased with as
+```elixir
+defmodule MyApp.Qux do
+  alias MyApp.Foo, as: MyFoo
+  
+  def quux() do
+    MyFoo.dont_use_this_function_anymore(arg1, arg2)
+  end
+end
+```
+
+#### Imported calls
+```elixir
+defmodule MyApp.Qux do
+  import MyApp.Foo
+
+  def quux() do
+    dont_use_this_function_anymore(arg1, arg2)
+  end
+end
+```
+
+### 4. Run Credo
 
 ```bash
 mix credo
