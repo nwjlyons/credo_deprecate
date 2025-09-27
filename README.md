@@ -5,6 +5,14 @@ which you can't do with the built in [`@deprecated`](https://hexdocs.pm/elixir/M
 
 The check detects all forms of function and macro calls: direct calls, aliased calls, imported calls, required calls.
 
+> #### Sigils {: .warning}
+> 
+> Sigils appear as strings to the compiler so are not supported except for inside interpolation.
+> 
+> ❌ `~H"<hr :if={MyApp.Foo.deprecated_function(nil, nil)}/>"`
+> 
+> ✅ `~s"Foo #{MyApp.Foo.deprecated_function(nil, nil)}"`
+
 ## Usage
 
 ### 1. Add to your dependencies

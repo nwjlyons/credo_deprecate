@@ -4,7 +4,7 @@ defmodule CredoDeprecate.MixProject do
   def project do
     [
       app: :credo_deprecate,
-      version: "0.1.3",
+      version: "0.1.4",
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),

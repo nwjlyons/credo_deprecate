@@ -1,9 +1,17 @@
 defmodule CredoDeprecate do
-  @moduledoc """
+  @moduledoc ~S"""
   Credo check to prevent new usage of deprecated functions and macros while allowing existing usage via an `allow_list`
   which you can't do with the built in [`@deprecated`](https://hexdocs.pm/elixir/Module.html#module-deprecated-since-v1-6-0) attribute.
 
   The check detects all forms of function and macro calls: direct calls, aliased calls, imported calls, required calls.
+
+  > #### Sigils {: .warning}
+  >
+  > Sigils appear as strings to the compiler so are not supported except for inside interpolation.
+  >
+  > ❌ `~H"<hr :if={MyApp.Foo.deprecated_function(nil, nil)}/>"`
+  >
+  > ✅ `~s"Foo #{MyApp.Foo.deprecated_function(nil, nil)}"`
 
   ## Usage
 
