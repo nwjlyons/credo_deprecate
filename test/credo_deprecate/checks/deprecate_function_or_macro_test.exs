@@ -481,7 +481,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacroTest do
     |> to_source_file()
     |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne])
     |> assert_issue(fn issue ->
-      assert issue.message == "Foo is deprecated"
+      assert issue.message =~ "Foo.foo/1 is deprecated."
     end)
   end
 
@@ -500,7 +500,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacroTest do
     |> to_source_file()
     |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne], message: "This function is no longer supported")
     |> assert_issue(fn issue ->
-      assert issue.message == "This function is no longer supported"
+      assert issue.message =~ "This function is no longer supported"
     end)
   end
 
@@ -521,7 +521,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacroTest do
     |> to_source_file()
     |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne], message: "Please use the new API instead")
     |> assert_issue(fn issue ->
-      assert issue.message == "Please use the new API instead"
+      assert issue.message =~ "Please use the new API instead"
     end)
   end
 
@@ -542,7 +542,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacroTest do
     |> to_source_file()
     |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :foo, 1}, allow_list: [ModuleOne], message: "Use Bar.foo/1 instead")
     |> assert_issue(fn issue ->
-      assert issue.message == "Use Bar.foo/1 instead"
+      assert issue.message =~ "Use Bar.foo/1 instead"
     end)
   end
 end
