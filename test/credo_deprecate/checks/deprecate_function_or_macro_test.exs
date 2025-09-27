@@ -605,25 +605,6 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacroTest do
     |> assert_issue()
   end
 
-  test "require from nested module with short name call" do
-    """
-    defmodule Foo.Bar do
-      defmacro deprecated_macro(a), do: nil
-    end
-    defmodule ModuleOne do
-      require Foo.Bar
-      Bar.deprecated_macro(2)
-    end
-    defmodule ModuleTwo do
-      require Foo.Bar
-      Bar.deprecated_macro(2)
-    end
-    """
-    |> to_source_file()
-    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo.Bar, :deprecated_macro, 1}, allow_list: [ModuleOne])
-    |> assert_issue()
-  end
-
   test "require from nested module with full name call still works" do
     """
     defmodule Foo.Bar do

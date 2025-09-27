@@ -87,12 +87,6 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
               length(args) == acc.mfa.arity ->
             {ast, add_issue(acc, issue_meta, dot_meta[:line])}
 
-          # Call through require (short module name for nested modules)
-          acc.current_module not in acc.allow_list && acc.mfa.module in acc.requires &&
-            module == [List.last(acc.mfa.module)] && function == acc.mfa.function &&
-              length(args) == acc.mfa.arity ->
-            {ast, add_issue(acc, issue_meta, dot_meta[:line])}
-
           true ->
             {ast, acc}
         end
