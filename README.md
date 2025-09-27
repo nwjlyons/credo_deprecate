@@ -48,7 +48,7 @@ The check detects all forms of function and macro calls in the examples below:
 ```elixir
 defmodule MyApp.Qux do
   def quux() do
-    MyApp.Foo.deprecated_function(arg1, arg2)
+    MyApp.Foo.deprecated_function(nil, nil)
   end
 end
 ```
@@ -59,8 +59,7 @@ defmodule MyApp.Qux do
   alias MyApp.Foo
 
   def quux() do
-    Foo.deprecated_function(arg1, arg2)
-    Foo.deprecated_macro(arg1, arg2)
+    Foo.deprecated_function(nil, nil)
   end
 end
 ```
@@ -71,8 +70,7 @@ defmodule MyApp.Qux do
   alias MyApp.Foo, as: MyFoo
 
   def quux() do
-    MyFoo.deprecated_function(arg1, arg2)
-    MyFoo.deprecated_macro(arg1, arg2)
+    MyFoo.deprecated_function(nil, nil)
   end
 end
 ```
@@ -83,8 +81,8 @@ defmodule MyApp.Qux do
   import MyApp.Foo
 
   def quux() do
-    deprecated_function(arg1, arg2)
-    deprecated_macro(arg1, arg2)
+    deprecated_function(nil, nil)
+    deprecated_macro(nil, nil)
   end
 end
 ```
@@ -95,7 +93,7 @@ defmodule MyApp.Qux do
   require MyApp.Foo
 
   def quux() do
-    Foo.deprecated_macro(arg1, arg2)
+    MyApp.Foo.deprecated_macro(nil, nil)
   end
 end
 ```
