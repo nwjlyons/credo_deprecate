@@ -5,9 +5,7 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
     param_defaults: [module: nil, allow_list: [], message: nil],
     explanations: [
       check: """
-      Prevents new usage of deprecated modules while allowing existing usage via an `allow_list`.
-
-      The check detects all forms of module usage: direct calls, aliased calls, imported calls, required calls.
+      Prevents new usage of deprecated module while allowing existing usage via an `allow_list`.
       """,
       params: [
         module:
