@@ -1,9 +1,9 @@
 defmodule CredoDeprecate do
   @moduledoc ~S"""
-  Credo check to prevent new usage of deprecated functions and macros while allowing existing usage via an `allow_list`
-  which you can't do with the built in [`@deprecated`](https://hexdocs.pm/elixir/Module.html#module-deprecated-since-v1-6-0) attribute.
+  - `CredoDeprecate.Checks.DeprecateModule`
+  - `CredoDeprecate.Checks.DeprecateFunctionOrMacro`
 
-  The check detects all forms of function and macro calls: direct calls, aliased calls, imported calls, required calls.
+  Credo checks to prevent new usage of deprecated modules, functions, and macros while allowing existing usage via an `allow_list`.
 
   > #### Sigils {: .warning}
   >
@@ -33,14 +33,15 @@ defmodule CredoDeprecate do
     %{
       name: "default",
       checks: [
-        {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
-          mfa: {MyApp.Foo, :deprecated_function, 2},
+        {CredoDeprecate.Checks.DeprecateModule, [
+          module: MyApp.Foo,
           allow_list: [MyApp.Bar, MyApp.Baz],
           message: "use Abc.bar/2 instead"
         ]},
         {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
-          mfa: {MyApp.Foo, :deprecated_macro, 2},
-          allow_list: [MyApp.Bar]
+          mfa: {MyApp.Foo, :deprecated_function, 2},
+          allow_list: [MyApp.Bar],
+          message: "use Abc.bar/2 instead"
         ]}
       ]
     }

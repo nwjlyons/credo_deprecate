@@ -1,9 +1,9 @@
 # CredoDeprecate
 
-Credo check to prevent new usage of deprecated functions and macros while allowing existing usage via an `allow_list` 
-which you can't do with the built in [`@deprecated`](https://hexdocs.pm/elixir/Module.html#module-deprecated-since-v1-6-0) attribute.
+- [`CredoDeprecate.Checks.DeprecateModule`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateModule.html)
+- [`CredoDeprecate.Checks.DeprecateFunctionOrMacro`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateFunctionOrMacro.html)
 
-The check detects all forms of function and macro calls: direct calls, aliased calls, imported calls, required calls.
+Credo checks to prevent new usage of deprecated modules, functions, and macros while allowing existing usage via an `allow_list`.
 
 > #### Sigils {: .warning}
 > 
