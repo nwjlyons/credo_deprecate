@@ -27,7 +27,8 @@ end
       checks: [
         {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
           mfa: {MyApp.Foo, :deprecated_function, 2},
-          allow_list: [MyApp.Bar, MyApp.Baz]
+          allow_list: [MyApp.Bar, MyApp.Baz],
+          message: "use Abc.bar/2 instead"
         ]},
         {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
           mfa: {MyApp.Foo, :deprecated_macro, 2},
@@ -84,6 +85,17 @@ defmodule MyApp.Qux do
   def quux() do
     deprecated_function(arg1, arg2)
     deprecated_macro(arg1, arg2)
+  end
+end
+```
+
+#### Required calls
+```elixir
+defmodule MyApp.Qux do
+  require MyApp.Foo
+
+  def quux() do
+    Foo.deprecated_macro(arg1, arg2)
   end
 end
 ```
