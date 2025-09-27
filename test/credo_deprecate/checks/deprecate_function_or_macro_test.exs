@@ -443,4 +443,25 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacroTest do
     |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :baz, 1}, allow_list: [ModuleOne])
     |> assert_issue()
   end
+
+  test "function call within sigil_s interpolation not allowed" do
+    """
+    defmodule Foo do
+      def deprecated_function(a), do: nil
+    end
+    defmodule ModuleOne do
+      def test_function do
+        ~s"String with \#{Foo.deprecated_function(1)} interpolation"
+      end
+    end
+    defmodule ModuleTwo do
+      def test_function do
+        ~s"String with \#{Foo.deprecated_function(1)} interpolation"
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateFunctionOrMacro, mfa: {Foo, :deprecated_function, 1}, allow_list: [ModuleOne])
+    |> assert_issue()
+  end
 end
