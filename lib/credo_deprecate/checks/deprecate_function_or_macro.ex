@@ -38,6 +38,7 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
       current_module: nil,
       aliases: %{},
       imports: [],
+      requires: [],
       issues: []
     })
     |> Map.fetch!(:issues)
@@ -46,8 +47,8 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
   defp traverse(ast, acc, issue_meta) do
     case ast do
       {:defmodule, _meta, [{:__aliases__, _, current_module} | _]} ->
-        # Reset aliases and imports for new module
-        {ast, %{acc | current_module: current_module, aliases: %{}, imports: []}}
+        # Reset aliases, imports, and requires for new module
+        {ast, %{acc | current_module: current_module, aliases: %{}, imports: [], requires: []}}
 
       # Handle alias statements
       {:alias, _meta, [{:__aliases__, _, module}]} ->
@@ -63,6 +64,10 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
       {:import, _meta, [{:__aliases__, _, module}]} ->
         {ast, %{acc | imports: [module | acc.imports]}}
 
+      # Handle require statements
+      {:require, _meta, [{:__aliases__, _, module}]} ->
+        {ast, %{acc | requires: [module | acc.requires]}}
+
       # Handle direct module calls (existing functionality)
       {{:., dot_meta, [{:__aliases__, _aliases_meta, module}, function]}, _args_meta, args} ->
         cond do
@@ -75,6 +80,16 @@ defmodule CredoDeprecate.Checks.DeprecateFunctionOrMacro do
           acc.current_module not in acc.allow_list && Map.has_key?(acc.aliases, module) &&
             Map.get(acc.aliases, module) == acc.mfa.module &&
             function == acc.mfa.function && length(args) == acc.mfa.arity ->
+            {ast, add_issue(acc, issue_meta, dot_meta[:line])}
+
+          # Call through require (full module name)
+          acc.current_module not in acc.allow_list && acc.mfa.module in acc.requires &&
+            module == acc.mfa.module && function == acc.mfa.function && length(args) == acc.mfa.arity ->
+            {ast, add_issue(acc, issue_meta, dot_meta[:line])}
+
+          # Call through require (short module name for nested modules)
+          acc.current_module not in acc.allow_list && acc.mfa.module in acc.requires &&
+            module == [List.last(acc.mfa.module)] && function == acc.mfa.function && length(args) == acc.mfa.arity ->
             {ast, add_issue(acc, issue_meta, dot_meta[:line])}
 
           true ->
