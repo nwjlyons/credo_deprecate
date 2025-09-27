@@ -13,6 +13,8 @@ defmodule CredoDeprecate.Checks.DeprecateFunction do
       },
       allow_list: allow_list |> Enum.map(&module_to_atoms/1),
       current_module: nil,
+      aliases: %{},
+      imports: [],
       issues: []
     })
     |> Map.fetch!(:issues)
@@ -21,23 +23,46 @@ defmodule CredoDeprecate.Checks.DeprecateFunction do
   defp traverse(ast, acc, issue_meta) do
     case ast do
       {:defmodule, _meta, [{:__aliases__, _, current_module} | _]} ->
-        {ast, %{acc | current_module: current_module}}
+        # Reset aliases and imports for new module
+        {ast, %{acc | current_module: current_module, aliases: %{}, imports: []}}
 
+      # Handle alias statements
+      {:alias, _meta, [{:__aliases__, _, module}]} ->
+        # Simple alias: alias Foo.Bar -> Bar maps to Foo.Bar
+        alias_name = List.last(module)
+        {ast, %{acc | aliases: Map.put(acc.aliases, [alias_name], module)}}
+
+      {:alias, _meta, [{:__aliases__, _, module}, [as: {:__aliases__, _, [alias_name]}]]} ->
+        # Alias with as: alias Foo.Bar, as: Baz -> Baz maps to Foo.Bar
+        {ast, %{acc | aliases: Map.put(acc.aliases, [alias_name], module)}}
+
+      # Handle import statements
+      {:import, _meta, [{:__aliases__, _, module}]} ->
+        {ast, %{acc | imports: [module | acc.imports]}}
+
+      # Handle direct module calls (existing functionality)
       {{:., dot_meta, [{:__aliases__, _aliases_meta, module}, function]}, _args_meta, args} ->
-        if acc.current_module not in acc.allow_list && module == acc.mfa.module &&
+        cond do
+          # Direct call to deprecated module
+          acc.current_module not in acc.allow_list && module == acc.mfa.module &&
+            function == acc.mfa.function && length(args) == acc.mfa.arity ->
+            {ast, add_issue(acc, issue_meta, dot_meta[:line])}
+
+          # Call through alias
+          acc.current_module not in acc.allow_list && Map.has_key?(acc.aliases, module) &&
+            Map.get(acc.aliases, module) == acc.mfa.module &&
+            function == acc.mfa.function && length(args) == acc.mfa.arity ->
+            {ast, add_issue(acc, issue_meta, dot_meta[:line])}
+
+          true ->
+            {ast, acc}
+        end
+
+      # Handle imported function calls
+      {function, meta, args} when is_atom(function) and is_list(args) ->
+        if acc.current_module not in acc.allow_list && acc.mfa.module in acc.imports &&
              function == acc.mfa.function && length(args) == acc.mfa.arity do
-          {ast,
-           %{
-             acc
-             | issues: [
-                 issue_for(
-                   issue_meta,
-                   dot_meta[:line],
-                   "#{module_to_string(acc.mfa.module)} is deprecated"
-                 )
-                 | acc.issues
-               ]
-           }}
+          {ast, add_issue(acc, issue_meta, meta[:line])}
         else
           {ast, acc}
         end
@@ -45,6 +70,20 @@ defmodule CredoDeprecate.Checks.DeprecateFunction do
       _ ->
         {ast, acc}
     end
+  end
+
+  defp add_issue(acc, issue_meta, line_no) do
+    %{
+      acc
+      | issues: [
+          issue_for(
+            issue_meta,
+            line_no,
+            "#{module_to_string(acc.mfa.module)} is deprecated"
+          )
+          | acc.issues
+        ]
+    }
   end
 
   defp issue_for({Credo.IssueMeta, %SourceFile{}, _} = issue_meta, line_no, message)
