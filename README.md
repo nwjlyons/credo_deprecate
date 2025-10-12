@@ -1,9 +1,7 @@
-# CredoDeprecate
+Credo checks to prevent new usage of deprecated modules, functions, and macros while allowing existing usage via an `allow_list`.
 
 - [`CredoDeprecate.Checks.DeprecateModule`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateModule.html)
 - [`CredoDeprecate.Checks.DeprecateFunctionOrMacro`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateFunctionOrMacro.html)
-
-Credo checks to prevent new usage of deprecated modules, functions, and macros while allowing existing usage via an `allow_list`.
 
 > #### Sigils {: .warning}
 > 
