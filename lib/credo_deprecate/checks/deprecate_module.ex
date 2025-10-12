@@ -32,6 +32,7 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
       allow_list: allow_list |> Enum.map(&module_to_atoms/1),
       message: message,
       current_module: nil,
+      has_statement_issue: false,
       issues: []
     })
     |> Map.fetch!(:issues)
@@ -40,13 +41,13 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
   defp traverse(ast, acc, issue_meta) do
     case ast do
       {:defmodule, _meta, [{:__aliases__, _, current_module} | _]} ->
-        # Set current module for new module
-        {ast, %{acc | current_module: current_module}}
+        # Set current module for new module and reset statement issue flag
+        {ast, %{acc | current_module: current_module, has_statement_issue: false}}
 
       # Handle alias statements
       {:alias, meta, [{:__aliases__, _, module}]} ->
         acc = if acc.current_module not in acc.allow_list && module == acc.deprecated_module do
-          add_issue(acc, issue_meta, meta[:line])
+          acc |> add_issue(issue_meta, meta[:line]) |> Map.put(:has_statement_issue, true)
         else
           acc
         end
@@ -54,7 +55,7 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
 
       {:alias, meta, [{:__aliases__, _, module}, [as: {:__aliases__, _, [_alias_name]}]]} ->
         acc = if acc.current_module not in acc.allow_list && module == acc.deprecated_module do
-          add_issue(acc, issue_meta, meta[:line])
+          acc |> add_issue(issue_meta, meta[:line]) |> Map.put(:has_statement_issue, true)
         else
           acc
         end
@@ -63,7 +64,7 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
       # Handle import statements
       {:import, meta, [{:__aliases__, _, module}]} ->
         acc = if acc.current_module not in acc.allow_list && module == acc.deprecated_module do
-          add_issue(acc, issue_meta, meta[:line])
+          acc |> add_issue(issue_meta, meta[:line]) |> Map.put(:has_statement_issue, true)
         else
           acc
         end
@@ -72,12 +73,21 @@ defmodule CredoDeprecate.Checks.DeprecateModule do
       # Handle require statements
       {:require, meta, [{:__aliases__, _, module}]} ->
         acc = if acc.current_module not in acc.allow_list && module == acc.deprecated_module do
-          add_issue(acc, issue_meta, meta[:line])
+          acc |> add_issue(issue_meta, meta[:line]) |> Map.put(:has_statement_issue, true)
         else
           acc
         end
         {ast, acc}
 
+      # Handle direct module calls like DeprecatedModule.some_function(args)
+      # Only flag if no alias/import/require statement was already flagged
+      {{:., meta, [{:__aliases__, _, module}, _function_name]}, _, _args} ->
+        acc = if acc.current_module not in acc.allow_list && module == acc.deprecated_module && !acc.has_statement_issue do
+          add_issue(acc, issue_meta, meta[:line])
+        else
+          acc
+        end
+        {ast, acc}
 
       _ ->
         {ast, acc}
