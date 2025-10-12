@@ -3,7 +3,7 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
 
   alias CredoDeprecate.Checks.DeprecateModule
 
-  test "direct module call not allowed" do
+  test "direct module call allowed (not detected by this check)" do
     """
     defmodule DeprecatedModule do
       def some_function(a), do: nil
@@ -17,10 +17,10 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     """
     |> to_source_file()
     |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
-    |> assert_issue()
+    |> refute_issues()
   end
 
-  test "direct module call with zero arity not allowed" do
+  test "direct module call with zero arity allowed (not detected by this check)" do
     """
     defmodule DeprecatedModule do
       def some_function(), do: nil
@@ -34,10 +34,10 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     """
     |> to_source_file()
     |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
-    |> assert_issue()
+    |> refute_issues()
   end
 
-  test "direct module call with multiple functions not allowed" do
+  test "direct module call with multiple functions allowed (not detected by this check)" do
     """
     defmodule DeprecatedModule do
       def func_a(a), do: nil
@@ -52,7 +52,7 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     """
     |> to_source_file()
     |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
-    |> assert_issue()
+    |> refute_issues()
   end
 
   test "alias module call not allowed" do
@@ -131,7 +131,7 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     |> assert_issue()
   end
 
-  test "nested module direct call not allowed" do
+  test "nested module direct call allowed (not detected by this check)" do
     """
     defmodule Foo.DeprecatedModule do
       def some_function(a), do: nil
@@ -145,7 +145,7 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     """
     |> to_source_file()
     |> run_check(DeprecateModule, module: Foo.DeprecatedModule, allow_list: [ModuleOne])
-    |> assert_issue()
+    |> refute_issues()
   end
 
   test "nested module alias call not allowed" do
@@ -286,9 +286,11 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
       def some_function(a), do: nil
     end
     defmodule ModuleOne do
+      alias DeprecatedModule
       DeprecatedModule.some_function(1)
     end
     defmodule ModuleTwo do
+      alias DeprecatedModule
       DeprecatedModule.some_function(1)
     end
     """
@@ -308,9 +310,11 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
       def some_function(a), do: nil
     end
     defmodule ModuleOne do
+      alias DeprecatedModule
       DeprecatedModule.some_function(1)
     end
     defmodule ModuleTwo do
+      alias DeprecatedModule
       DeprecatedModule.some_function(1)
     end
     """
@@ -321,7 +325,7 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     end)
   end
 
-  test "alias statement without usage allowed" do
+  test "alias statement without usage not allowed" do
     """
     defmodule DeprecatedModule do
       def some_function(a), do: nil
@@ -335,10 +339,10 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     """
     |> to_source_file()
     |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
-    |> refute_issues()
+    |> assert_issue()
   end
 
-  test "alias with as statement without usage allowed" do
+  test "alias with as statement without usage not allowed" do
     """
     defmodule DeprecatedModule do
       def some_function(a), do: nil
@@ -352,10 +356,10 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     """
     |> to_source_file()
     |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
-    |> refute_issues()
+    |> assert_issue()
   end
 
-  test "import statement without usage allowed" do
+  test "import statement without usage not allowed" do
     """
     defmodule DeprecatedModule do
       def some_function(a), do: nil
@@ -369,10 +373,10 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     """
     |> to_source_file()
     |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
-    |> refute_issues()
+    |> assert_issue()
   end
 
-  test "require statement without usage allowed" do
+  test "require statement without usage not allowed" do
     """
     defmodule DeprecatedModule do
       defmacro some_macro(a), do: nil
@@ -386,6 +390,6 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     """
     |> to_source_file()
     |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
-    |> refute_issues()
+    |> assert_issue()
   end
 end
