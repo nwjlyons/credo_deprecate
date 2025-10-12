@@ -9,9 +9,9 @@ Credo checks to prevent new usage of deprecated modules, functions, and macros w
 > 
 > Sigils appear as strings to the compiler so are not supported except for inside interpolation.
 > 
-> ❌ `~H"<hr :if={MyApp.Foo.deprecated_function(nil, nil)}/>"`
+> ❌ `~H"<hr :if={MyApp.Foo.deprecated_function()}/>"`
 > 
-> ✅ `~s"Foo #{MyApp.Foo.deprecated_function(nil, nil)}"`
+> ✅ `~s"Foo #{MyApp.Foo.deprecated_function()}"`
 
 ## Usage
 
@@ -39,7 +39,7 @@ end
           message: "use Abc.bar/2 instead"
         ]},
         {CredoDeprecate.Checks.DeprecateFunctionOrMacro, [
-          mfa: {MyApp.Foo, :deprecated_function, 2},
+          mfa: {MyApp.Foo, :deprecated_function, 0},
           allow_list: [MyApp.Bar],
           message: "use Abc.bar/2 instead"
         ]}
@@ -61,7 +61,7 @@ mix credo
 ```bash
   Warnings - please take a look                                                                                                                                                                                                                      
 ┃ 
-┃ [W] ↗ MyApp.Foo.deprecated_function/2 is deprecated. use Abc.bar/2 instead
+┃ [W] ↗ MyApp.Foo.deprecated_function/0 is deprecated. use Abc.bar/2 instead
 ┃       lib/my_app/qux.ex
 
 Please report incorrect results: https://github.com/rrrene/credo/issues
