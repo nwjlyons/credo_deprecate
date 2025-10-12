@@ -392,4 +392,138 @@ defmodule CredoDeprecate.Checks.DeprecateModuleTest do
     |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
     |> assert_issue()
   end
+
+  test "usage inside function not allowed" do
+    """
+    defmodule DeprecatedModule do
+      def some_function(a), do: nil
+    end
+    defmodule ModuleOne do
+      def function do
+        DeprecatedModule.some_function(1)
+      end
+    end
+    defmodule ModuleTwo do
+      def function do
+        DeprecatedModule.some_function(1)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
+    |> assert_issue()
+  end
+
+  test "usage inside private function not allowed" do
+    """
+    defmodule DeprecatedModule do
+      def some_function(a), do: nil
+    end
+    defmodule ModuleOne do
+      defp private_function do
+        DeprecatedModule.some_function(1)
+      end
+    end
+    defmodule ModuleTwo do
+      defp private_function do
+        DeprecatedModule.some_function(1)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
+    |> assert_issue()
+  end
+
+  test "usage inside function with alias not allowed" do
+    """
+    defmodule DeprecatedModule do
+      def some_function(a), do: nil
+    end
+    defmodule ModuleOne do
+      alias DeprecatedModule
+      def function do
+        DeprecatedModule.some_function(1)
+      end
+    end
+    defmodule ModuleTwo do
+      alias DeprecatedModule
+      def function do
+        DeprecatedModule.some_function(1)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
+    |> assert_issue()
+  end
+
+  test "usage inside function with import not allowed" do
+    """
+    defmodule DeprecatedModule do
+      def some_function(a), do: nil
+    end
+    defmodule ModuleOne do
+      import DeprecatedModule
+      def function do
+        some_function(1)
+      end
+    end
+    defmodule ModuleTwo do
+      import DeprecatedModule
+      def function do
+        some_function(1)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
+    |> assert_issue()
+  end
+
+  test "usage inside nested function not allowed" do
+    """
+    defmodule DeprecatedModule do
+      def some_function(a), do: nil
+    end
+    defmodule ModuleOne do
+      def outer_function do
+        def inner_function do
+          DeprecatedModule.some_function(1)
+        end
+      end
+    end
+    defmodule ModuleTwo do
+      def outer_function do
+        def inner_function do
+          DeprecatedModule.some_function(1)
+        end
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne])
+    |> assert_issue()
+  end
+
+  test "allow list works for usage inside function" do
+    """
+    defmodule DeprecatedModule do
+      def some_function(a), do: nil
+    end
+    defmodule ModuleOne do
+      def function do
+        DeprecatedModule.some_function(1)
+      end
+    end
+    defmodule ModuleTwo do
+      def function do
+        DeprecatedModule.some_function(1)
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateModule, module: DeprecatedModule, allow_list: [ModuleOne, ModuleTwo])
+    |> refute_issues()
+  end
 end
