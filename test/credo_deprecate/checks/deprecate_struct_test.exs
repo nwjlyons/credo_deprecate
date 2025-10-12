@@ -318,4 +318,112 @@ defmodule CredoDeprecate.Checks.DeprecateStructTest do
       assert issue.message =~ "DeprecatedStruct struct is deprecated."
     end)
   end
+
+  test "function calls on deprecated struct module are allowed" do
+    """
+    defmodule DeprecatedStruct do
+      defstruct [:field1, :field2]
+
+      def foo(), do: "allowed"
+      def bar(x), do: x * 2
+    end
+    defmodule ModuleOne do
+      def call_function do
+        DeprecatedStruct.foo()
+      end
+
+      def call_function_with_args do
+        DeprecatedStruct.bar(5)
+      end
+
+      # This should still be blocked
+      def create_struct do
+        %DeprecatedStruct{field1: "value1"}
+      end
+    end
+    defmodule ModuleTwo do
+      def call_function do
+        DeprecatedStruct.foo()
+      end
+
+      # This should still be blocked  
+      def create_struct do
+        %DeprecatedStruct{field1: "value1"}
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateStruct, struct: DeprecatedStruct, allow_list: [])
+    |> assert_issues(fn issues ->
+      # Should only have 2 issues for struct usage, not function calls
+      assert length(issues) == 2
+      Enum.each(issues, fn issue ->
+        assert issue.message =~ "DeprecatedStruct struct is deprecated."
+      end)
+    end)
+  end
+
+  test "only function calls on deprecated struct module should pass" do
+    """
+    defmodule DeprecatedStruct do
+      defstruct [:field1, :field2]
+
+      def foo(), do: "allowed"
+      def bar(x), do: x * 2
+      def process_data(data), do: data
+    end
+    defmodule ModuleOne do
+      def call_function do
+        DeprecatedStruct.foo()
+      end
+
+      def call_function_with_args do
+        DeprecatedStruct.bar(5)
+      end
+
+      def process_some_data do
+        DeprecatedStruct.process_data("test")
+      end
+    end
+    defmodule ModuleTwo do
+      def another_call do
+        DeprecatedStruct.foo()
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateStruct, struct: DeprecatedStruct, allow_list: [])
+    |> refute_issues()
+  end
+
+  test "struct pattern matching in function arguments not allowed" do
+    """
+    defmodule DeprecatedStruct do
+      defstruct [:field1, :field2]
+    end
+    defmodule ModuleOne do
+      def process_struct(%DeprecatedStruct{field1: value} = struct) do
+        {value, struct}
+      end
+    end
+    defmodule ModuleTwo do
+      def handle_data(%DeprecatedStruct{} = data) do
+        data
+      end
+
+      def match_multiple(%DeprecatedStruct{field1: f1, field2: f2}) do
+        {f1, f2}
+      end
+    end
+    """
+    |> to_source_file()
+    |> run_check(DeprecateStruct, struct: DeprecatedStruct, allow_list: [ModuleOne])
+    |> assert_issues(fn issues ->
+      # Should have 2 issues for ModuleTwo's function arguments
+      assert length(issues) == 2
+      Enum.each(issues, fn issue ->
+        assert issue.message =~ "DeprecatedStruct struct is deprecated."
+      end)
+    end)
+  end
 end

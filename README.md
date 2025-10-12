@@ -1,7 +1,8 @@
-Credo checks to prevent new usage of deprecated modules, functions, and macros while allowing existing usage via an `allow_list`.
+Credo checks to prevent new usage of deprecated modules, functions, macros, and structs while allowing existing usage via an `allow_list`.
 
 - [`CredoDeprecate.Checks.DeprecateModule`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateModule.html)
 - [`CredoDeprecate.Checks.DeprecateFunctionOrMacro`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateFunctionOrMacro.html)
+- [`CredoDeprecate.Checks.DeprecateStruct`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateStruct.html)
 
 > #### Sigils {: .warning}
 > 
@@ -40,6 +41,11 @@ end
           mfa: {MyApp.Foo, :deprecated_function, 0},
           allow_list: [MyApp.Bar],
           message: "use Abc.bar/2 instead"
+        ]},
+        {CredoDeprecate.Checks.DeprecateStruct, [
+          struct: MyApp.DeprecatedStruct,
+          allow_list: [MyApp.LegacyModule],
+          message: "use MyApp.NewStruct instead"
         ]}
       ]
     }
@@ -61,6 +67,9 @@ mix credo
 ┃ 
 ┃ [W] ↗ MyApp.Foo.deprecated_function/0 is deprecated. use Abc.bar/2 instead
 ┃       lib/my_app/qux.ex
+┃ 
+┃ [W] ↗ MyApp.DeprecatedStruct struct is deprecated. use MyApp.NewStruct instead
+┃       lib/my_app/baz.ex
 
 Please report incorrect results: https://github.com/rrrene/credo/issues
 ```
