@@ -1,16 +1,9 @@
-Credo checks to prevent new usage of deprecated modules, functions, macros, and structs while allowing existing usage via an `allow_list`.
+Credo checks to prevent new usage of deprecated modules, functions, macros, structs, and sigils while allowing existing usage via an `allow_list`.
 
 - [`CredoDeprecate.Checks.DeprecateModule`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateModule.html)
 - [`CredoDeprecate.Checks.DeprecateFunctionOrMacro`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateFunctionOrMacro.html)
 - [`CredoDeprecate.Checks.DeprecateStruct`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateStruct.html)
-
-> #### Sigils {: .warning}
-> 
-> Sigils appear as strings to the compiler so are not supported except for inside interpolation.
-> 
-> ❌ `~H"<hr :if={MyApp.Foo.deprecated_function()}/>"`
-> 
-> ✅ `~s"Foo #{MyApp.Foo.deprecated_function()}"`
+- [`CredoDeprecate.Checks.DeprecateSigil`](https://hexdocs.pm/credo_deprecate/CredoDeprecate.Checks.DeprecateSigil.html)
 
 ## Usage
 
@@ -46,6 +39,11 @@ end
           struct: MyApp.DeprecatedStruct,
           allow_list: [MyApp.LegacyModule],
           message: "use MyApp.NewStruct instead"
+        ]},
+        {CredoDeprecate.Checks.DeprecateSigil, [
+          sigil: :sigil_F,
+          allow_list: [],
+          message: "Use ~H instead"
         ]}
       ]
     }
@@ -70,6 +68,9 @@ mix credo
 ┃ 
 ┃ [W] ↗ MyApp.DeprecatedStruct struct is deprecated. use MyApp.NewStruct instead
 ┃       lib/my_app/baz.ex
+┃ 
+┃ [W] ↗ ~F sigil is deprecated. Use ~H instead
+┃       lib/my_app/qux.ex
 
 Please report incorrect results: https://github.com/rrrene/credo/issues
 ```
